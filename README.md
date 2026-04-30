@@ -105,13 +105,29 @@ Changing match settings restarts the arena while keeping connected player slots.
 
 ## LAN Client UX
 
-The multiplayer client now includes:
+The multiplayer client includes:
 
 - a clear `Join Arena` button;
 - a `Host Dashboard` button;
 - a `Check Server` button;
 - a clear hint that the server must be started through the launcher;
 - stabilized grid rendering to avoid inconsistent thick/thin grid lines.
+
+## LAN Performance Optimizations
+
+The LAN networking layer was optimized to reduce host and player lag:
+
+- server snapshot rate reduced from 20 Hz to 10 Hz;
+- `/api/state?id=<playerId>&r=<range>` now returns a player-scoped snapshot instead of the whole world;
+- clients receive nearby food, nearby obstacles, nearby snakes with bodies, and a lightweight leaderboard;
+- distant player snakes are sent as lightweight summary objects;
+- food payload is capped per client snapshot;
+- coordinates are rounded before serialization to reduce JSON size;
+- client polling is throttled;
+- player input is sent only when direction/boost changes or on heartbeat;
+- input heartbeat keeps players connected without spamming the server.
+
+This keeps the current HTTP-based architecture simple while substantially reducing traffic and CPU pressure on the host.
 
 ## Important Browser Limitation
 
@@ -204,7 +220,7 @@ The LAN mode uses an authoritative Node.js server:
 - the server owns the world state;
 - players send input to the server;
 - the server updates snakes, food, obstacles, AI bots, resources, and collisions;
-- clients poll the current arena snapshot and render it locally;
+- clients poll optimized arena snapshots and render them locally;
 - no external backend or internet connection is required after the local server is running.
 
 The host API includes:
@@ -252,12 +268,13 @@ The project is ready for manual testing in both modes:
 
 - single-player directly from `index.html`;
 - LAN multiplayer through the launcher or `npm start`;
-- host-managed LAN matches through `public/host.html`.
+- host-managed LAN matches through `public/host.html`;
+- optimized LAN snapshots for lower host/player lag.
 
 ## Recommended Next Steps
 
-1. Package the launcher as a desktop app with Electron or Tauri for a true one-button native experience.
-2. Add WebSocket transport for lower-latency multiplayer.
-3. Add room presets and named match modes.
+1. Add WebSocket transport for lower-latency multiplayer.
+2. Add room presets and named match modes.
+3. Package the launcher as a desktop app with Electron or Tauri for a true one-button native experience.
 4. Add automatic JavaScript validation.
 5. Add graphics/control settings.
