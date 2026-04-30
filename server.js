@@ -8,7 +8,7 @@ const os = require('os');
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const TICK_HZ = 30;
-const SNAPSHOT_HZ = 20;
+const SNAPSHOT_HZ = 10;
 const WORLD = 9000;
 const HALF = WORLD / 2;
 const GAP = 9;
@@ -17,6 +17,10 @@ const TAU = Math.PI * 2;
 const COLORS = [200, 275, 335, 155, 38, 2, 122, 225, 50, 300];
 const BOT_NAMES = 'Cobra Python Mamba Viper Anaconda Boa Asp Phantom Nox Zeus Shadow Blade Venom Storm Omega Raptor Sector Cipher'.split(' ');
 const DEFAULT_CONFIG = Object.freeze({ bots: 14, food: 900, obstacles: 34 });
+const CLIENT_STATE_DEFAULT_RANGE = 2300;
+const CLIENT_STATE_MIN_RANGE = 1400;
+const CLIENT_STATE_MAX_RANGE = 4200;
+const CLIENT_FOOD_LIMIT = 260;
 
 let config = { ...DEFAULT_CONFIG };
 let food = [];
@@ -39,6 +43,8 @@ function now() { return Date.now(); }
 function id(prefix = 'p') { return prefix + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); }
 function getLanUrls() { const urls = []; for (const infos of Object.values(os.networkInterfaces())) for (const info of infos || []) if (info.family === 'IPv4' && !info.internal) urls.push(`http://${info.address}:${PORT}`); return urls; }
 function sanitizeConfig(input = {}) { return { bots: clamp(Number(input.bots ?? config.bots), 0, 40) | 0, food: clamp(Number(input.food ?? config.food), 150, 1800) | 0, obstacles: clamp(Number(input.obstacles ?? config.obstacles), 0, 90) | 0 }; }
+function rp(p) { return { x: Math.round(p.x), y: Math.round(p.y) }; }
+function inRange(p, center, range, pad = 0) { return Math.abs(p.x - center.x) <= range + pad && Math.abs(p.y - center.y) <= range + pad; }
 
 class Obstacle { constructor(x, y, r) { this.x = x; this.y = y; this.r = r; } hit(x, y, pad = 0) { return Math.hypot(x - this.x, y - this.y) < this.r + pad; } }
 class Food { constructor(x = rand(-HALF + 80, HALF - 80), y = rand(-HALF + 80, HALF - 80), v = rand(3, 6.5)) { this.id = id('f'); this.x = x; this.y = y; this.v = v; this.h = pick(COLORS); } }
@@ -121,7 +127,8 @@ class Snake {
   }
   eatFood() { for (let i = food.length - 1; i >= 0; i--) { const f = food[i]; const rr = RADIUS + f.v + 2; if (dist2(this.head, f) < rr * rr) { this.len += f.v * 0.75; this.health = Math.min(100, this.health + f.v * 2); this.boost = Math.min(100, this.boost + f.v * 3); this.score += f.v * 8; food.splice(i, 1); } } }
   die(killer) { if (!this.alive) return; this.alive = false; this.deaths += 1; for (let i = 0; i < this.body.length; i += this.bot ? 1 : 2) { const p = this.body[i]; food.push(new Food(p.x + rand(-10, 10), p.y + rand(-10, 10), rand(3, 6))); } if (killer && killer.alive) { killer.score += this.len * 25; killer.len += Math.min(12, this.len * 0.08); killer.kills += 1; } }
-  snapshot() { return { id: this.id, name: this.name, h: this.h, bot: this.bot, alive: this.alive, len: Math.floor(this.len), score: this.total(), kills: this.kills, deaths: this.deaths, health: Math.floor(this.health), boost: Math.floor(this.boost), angle: this.angle, head: this.head, body: this.body.filter((_, i) => i % 2 === 0) }; }
+  snapshot(step = 2) { return { id: this.id, name: this.name, h: this.h, bot: this.bot, alive: this.alive, len: Math.floor(this.len), score: this.total(), kills: this.kills, deaths: this.deaths, health: Math.floor(this.health), boost: Math.floor(this.boost), angle: +this.angle.toFixed(3), head: rp(this.head), body: this.body.filter((_, i) => i % step === 0).map(rp) }; }
+  summary() { return { id: this.id, name: this.name, h: this.h, bot: this.bot, alive: this.alive, len: Math.floor(this.len), score: this.total(), kills: this.kills, deaths: this.deaths, health: Math.floor(this.health), boost: Math.floor(this.boost), angle: +this.angle.toFixed(3), head: rp(this.head), body: [] }; }
 }
 
 function spawnObstacles() { obstacles = []; let guard = 0; while (obstacles.length < config.obstacles && guard++ < config.obstacles * 50) { const r = rand(42, 112), x = rand(-HALF + 250, HALF - 250), y = rand(-HALF + 250, HALF - 250); if (Math.hypot(x, y) < 700) continue; if (obstacles.some(o => Math.hypot(x - o.x, y - o.y) < r + o.r + 260)) continue; obstacles.push(new Obstacle(x, y, r)); } }
@@ -141,7 +148,26 @@ function collisions() {
   for (const s of alive) { if (!s.alive) continue; for (const o of alive) { if (!o.alive) continue; const start = s === o ? 13 : 1; for (let i = start; i < o.body.length; i++) { const p = o.body[i], rr = RADIUS + RADIUS * 0.8; if (dist2(s.head, p) < rr * rr || segDist2(p.x, p.y, s.prev.x, s.prev.y, s.head.x, s.head.y) < rr * rr) { s.die(o === s ? null : o); break; } } if (!s.alive) break; } }
 }
 function tick() { const t = now(); const dt = Math.min(0.05, (t - lastTick) / 1000); lastTick = t; spawnFood(); maintainBots(); cleanupPlayers(); for (const s of snakes.values()) s.update(dt); collisions(); }
-function makeSnapshot() { lastSnapshot = { world: WORLD, time: now(), config, stats: getStats(), snakes: [...snakes.values()].map(s => s.snapshot()), food: food.filter((_, i) => i % 2 === 0).map(f => ({ x: f.x, y: f.y, v: f.v, h: f.h })), obstacles: obstacles.map(o => ({ x: o.x, y: o.y, r: o.r })) }; }
+function leaderboardSnapshot() { return [...snakes.values()].sort((a, b) => b.total() - a.total()).slice(0, 12).map(s => ({ id: s.id, name: s.name, h: s.h, bot: s.bot, alive: s.alive, len: Math.floor(s.len), score: s.total(), kills: s.kills, deaths: s.deaths })); }
+function makeSnapshot() { lastSnapshot = { world: WORLD, time: now(), config, stats: getStats(), leaderboard: leaderboardSnapshot(), snakes: [...snakes.values()].map(s => s.snapshot(3)), food: food.filter((_, i) => i % 4 === 0).map(f => ({ x: Math.round(f.x), y: Math.round(f.y), v: +f.v.toFixed(1), h: f.h })), obstacles: obstacles.map(o => ({ x: Math.round(o.x), y: Math.round(o.y), r: Math.round(o.r) })) }; }
+function makeClientSnapshot(playerId, range = CLIENT_STATE_DEFAULT_RANGE) {
+  const viewer = snakes.get(String(playerId || ''));
+  const center = viewer?.head || { x: 0, y: 0 };
+  const r = clamp(Number(range) || CLIENT_STATE_DEFAULT_RANGE, CLIENT_STATE_MIN_RANGE, CLIENT_STATE_MAX_RANGE);
+  const snakePayload = [];
+  for (const s of snakes.values()) {
+    const own = s.id === playerId;
+    const visible = own || (s.alive && inRange(s.head, center, r, 420));
+    if (visible) snakePayload.push(s.snapshot(own ? 1 : 2));
+    else if (!s.bot) snakePayload.push(s.summary());
+  }
+  const foodPayload = [];
+  for (let i = 0; i < food.length && foodPayload.length < CLIENT_FOOD_LIMIT; i++) {
+    const f = food[i];
+    if (inRange(f, center, r, 80)) foodPayload.push({ x: Math.round(f.x), y: Math.round(f.y), v: +f.v.toFixed(1), h: f.h });
+  }
+  return { world: WORLD, time: now(), config, stats: getStats(), selfId: playerId || null, leaderboard: leaderboardSnapshot(), snakes: snakePayload, food: foodPayload, obstacles: obstacles.filter(o => inRange(o, center, r, o.r + 140)).map(o => ({ x: Math.round(o.x), y: Math.round(o.y), r: Math.round(o.r) })) };
+}
 function infoPayload() { return { port: PORT, localUrl: `http://localhost:${PORT}`, hostUrl: `http://localhost:${PORT}/host.html`, lanUrls: getLanUrls(), config, stats: getStats(), startedAt: new Date(startedAt).toISOString(), matchStartedAt: new Date(matchStartedAt).toISOString() }; }
 function sendJson(res, status, data) { const body = JSON.stringify(data); res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(body); }
 function readBody(req) { return new Promise((resolve, reject) => { let body = ''; req.on('data', chunk => { body += chunk; if (body.length > 1e6) req.destroy(); }); req.on('end', () => { try { resolve(body ? JSON.parse(body) : {}); } catch (e) { reject(e); } }); req.on('error', reject); }); }
@@ -161,7 +187,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/reset') { resetWorld({ keepPlayers: true }); sendJson(res, 200, { ok: true, config, stats: getStats() }); return; }
     if (req.method === 'POST' && url.pathname === '/api/join') { const body = await readBody(req); const sid = id('p'); const s = makeSnake({ snakeId: sid, name: safeName(body.name), h: pick(COLORS), bot: false }); snakes.set(sid, s); sendJson(res, 200, { id: sid, world: WORLD }); return; }
     if (req.method === 'POST' && url.pathname === '/api/input') { const body = await readBody(req); const s = snakes.get(String(body.id || '')); if (!s || s.bot) { sendJson(res, 404, { ok: false }); return; } if (!s.alive && body.respawn) { const fresh = makeSnake({ snakeId: s.id, name: s.name, h: s.h, bot: false }); fresh.kills = s.kills; fresh.deaths = s.deaths; snakes.set(s.id, fresh); } else { s.input.angle = Number(body.angle); s.input.boost = !!body.boost; s.input.lastSeen = now(); } sendJson(res, 200, { ok: true }); return; }
-    if (req.method === 'GET' && url.pathname === '/api/state') { sendJson(res, 200, lastSnapshot || {}); return; }
+    if (req.method === 'GET' && url.pathname === '/api/state') { const playerId = url.searchParams.get('id'); const range = Number(url.searchParams.get('r') || CLIENT_STATE_DEFAULT_RANGE); sendJson(res, 200, playerId ? makeClientSnapshot(playerId, range) : (lastSnapshot || {})); return; }
     if (req.method === 'GET' && url.pathname === '/api/health') { sendJson(res, 200, { ok: true, ...getStats() }); return; }
     if (req.method === 'GET') { serveStatic(req, res); return; }
     sendJson(res, 405, { error: 'Method not allowed' });
