@@ -1,17 +1,95 @@
 # Snake Arena
 
-**Snake Arena** is a browser-based arena snake game. The project now supports two modes:
+**Snake Arena** is a browser-based arena snake game with two modes:
 
 1. **Single-player mode** through `index.html`.
-2. **LAN multiplayer mode** through `server.js` and `public/index.html`.
+2. **LAN multiplayer mode** through a local Node.js host.
 
-The game is designed to work on desktop and mobile devices in the same local network.
+The LAN mode is designed for two or more players in the same Wi‑Fi/local network, with AI bots always present in the arena.
+
+## Fastest LAN Start
+
+### Windows
+
+Double-click:
+
+```text
+start-lan-windows.bat
+```
+
+The launcher starts the server and opens the host dashboard automatically.
+
+### macOS
+
+Double-click:
+
+```text
+start-lan-macos.command
+```
+
+If macOS blocks the file, run once:
+
+```bash
+chmod +x start-lan-macos.command
+./start-lan-macos.command
+```
+
+### Linux / macOS terminal
+
+```bash
+chmod +x start-lan.sh
+./start-lan.sh
+```
+
+### npm
+
+```bash
+npm start
+```
+
+`npm start` now launches the friendly LAN launcher, not just the raw server.
+
+## What the Launcher Does
+
+The launcher:
+
+1. starts the local game server;
+2. opens the host dashboard automatically;
+3. shows LAN links that other players can open;
+4. keeps the online game running while the launcher window is open.
+
+The host dashboard is available at:
+
+```text
+http://localhost:3000/host.html
+```
+
+Players join from the same Wi‑Fi/local network using a shown LAN address, for example:
+
+```text
+http://192.168.1.25:3000
+```
+
+Each player opens the link on their own phone/computer, enters a name, and joins the arena.
+
+## Important Browser Limitation
+
+A normal browser page cannot directly start a Node.js server on the user’s computer. Browsers intentionally do not have permission to execute local programs.
+
+That is why Snake Arena uses a launcher:
+
+- the launcher starts the server;
+- the UI shows the room/link;
+- players join from the browser.
+
+This is the closest safe flow to “Start network game from UI” without packaging the project as a desktop application.
 
 ## Features
 
 - Large arena map.
-- Multiple difficulty levels in the single-player version.
-- AI enemies with different behavior profiles.
+- Single-player mode.
+- LAN multiplayer for two or more players.
+- AI bots in both single-player and LAN multiplayer modes.
 - Deadly obstacles on the map.
 - Health that slowly drains over time.
 - Boost as a limited resource with no automatic regeneration.
@@ -20,17 +98,22 @@ The game is designed to work on desktop and mobile devices in the same local net
 - Mini-map.
 - Leaderboard.
 - Desktop and mobile controls.
-- Local storage for player name, record, and selected difficulty in single-player mode.
-- LAN multiplayer for two or more players in the same network.
+- Host dashboard with shareable LAN links.
 
 ## Project Structure
 
 ```text
 snake_arena/
-├── index.html          # Standalone single-player version
-├── server.js           # LAN multiplayer server, no external dependencies
+├── index.html                 # Standalone single-player version
+├── server.js                  # LAN multiplayer server
+├── start-lan.js               # Cross-platform LAN launcher
+├── start-lan-windows.bat      # Windows double-click launcher
+├── start-lan-macos.command    # macOS double-click launcher
+├── start-lan.sh               # macOS/Linux shell launcher
+├── package.json
 ├── public/
-│   └── index.html      # LAN multiplayer browser client
+│   ├── index.html             # LAN multiplayer client
+│   └── host.html              # Host dashboard with LAN links
 ├── README.md
 └── .gitignore
 ```
@@ -39,7 +122,7 @@ snake_arena/
 
 Single-player mode only needs a browser.
 
-LAN multiplayer mode requires Node.js.
+LAN multiplayer mode requires Node.js 18+.
 
 No npm packages are required. The multiplayer server uses only built-in Node.js modules.
 
@@ -47,7 +130,7 @@ No npm packages are required. The multiplayer server uses only built-in Node.js 
 
 Open `index.html` directly in a browser.
 
-Optional local static server:
+Optional static server:
 
 ```bash
 python -m http.server 8000
@@ -59,34 +142,19 @@ Then open:
 http://localhost:8000
 ```
 
-## Run LAN Multiplayer Mode
+## Run LAN Multiplayer Manually
 
-Start the server on one computer in the local network:
+If you do not want to use the launcher:
 
 ```bash
 node server.js
 ```
 
-The server prints addresses like:
-
-```text
-Snake Arena LAN server: http://localhost:3000
-LAN: http://192.168.1.25:3000
-```
-
-The host can open:
+Then open:
 
 ```text
 http://localhost:3000
 ```
-
-Other players on the same Wi-Fi or local network should open the LAN address, for example:
-
-```text
-http://192.168.1.25:3000
-```
-
-Each player enters a name and joins the arena from their own device.
 
 ## Multiplayer Architecture
 
@@ -98,7 +166,7 @@ The LAN mode uses an authoritative Node.js server:
 - clients poll the current arena snapshot and render it locally;
 - no external backend or internet connection is required after the local server is running.
 
-This design is intentionally simple and robust for local network play.
+This is intentionally simple and robust for local network play.
 
 ## Controls
 
@@ -125,49 +193,17 @@ Health constantly drains over time. Boosting burns health faster. If health reac
 
 Boost does not regenerate automatically. When boost reaches zero, acceleration stops. Boost is restored by eating food.
 
-## Single-Player Difficulty Levels
-
-| Difficulty | Description |
-|---|---|
-| Easy | Fewer enemies and obstacles, lower resource pressure |
-| Normal | Balanced baseline mode |
-| Hard | More enemies, higher aggression, denser arena |
-| Expert | More obstacles, faster enemy reaction, stronger interception behavior |
-
-## Enemy Behavior
-
-AI enemies evaluate:
-
-- distance to food;
-- threats from other snakes;
-- own health;
-- boost reserve;
-- obstacles;
-- arena borders;
-- chase opportunities;
-- interception opportunities;
-- collision risk with snake bodies.
-
-Enemy behavior profiles include:
-
-- forager;
-- coward;
-- hunter;
-- duelist;
-- trapper.
-
 ## Current Status
 
 The project is ready for manual testing in both modes:
 
 - single-player directly from `index.html`;
-- LAN multiplayer through `node server.js`.
+- LAN multiplayer through the launcher or `npm start`.
 
 ## Recommended Next Steps
 
-1. Split the single-player code into `src/`, `styles/`, and `assets/`.
-2. Add automated JavaScript validation.
-3. Add a proper WebSocket transport for lower-latency multiplayer.
-4. Add server-side rooms and match settings.
-5. Add GitHub Pages for the single-player build.
-6. Add a settings menu for graphics and control sensitivity.
+1. Package the launcher as a desktop app with Electron or Tauri for a true one-button native experience.
+2. Add WebSocket transport for lower-latency multiplayer.
+3. Add rooms and match settings.
+4. Add automatic JavaScript validation.
+5. Add graphics/control settings.
