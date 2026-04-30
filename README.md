@@ -1,118 +1,173 @@
 # Snake Arena
 
-**Snake Arena** — браузерная аренная игра в жанре змейки. Проект выполнен как один самодостаточный HTML-файл без сборки, внешних зависимостей и серверной части.
+**Snake Arena** is a browser-based arena snake game. The project now supports two modes:
 
-## Что внутри
+1. **Single-player mode** through `index.html`.
+2. **LAN multiplayer mode** through `server.js` and `public/index.html`.
 
-- большая игровая карта;
-- несколько уровней сложности;
-- враги с разными поведенческими профилями;
-- смертельные препятствия на карте;
-- здоровье, которое постепенно тратится;
-- ускорение как ограниченный ресурс без автоматического восстановления;
-- восстановление здоровья и ускорения через поедание еды;
-- столкновения с другими змеями, телом, хвостом, препятствиями и границами арены;
-- мини-карта;
-- таблица лидеров;
-- управление под компьютер и телефон;
-- сохранение имени, рекорда и выбранной сложности в `localStorage`.
+The game is designed to work on desktop and mobile devices in the same local network.
 
-## Запуск
+## Features
 
-Открой файл `index.html` в браузере.
+- Large arena map.
+- Multiple difficulty levels in the single-player version.
+- AI enemies with different behavior profiles.
+- Deadly obstacles on the map.
+- Health that slowly drains over time.
+- Boost as a limited resource with no automatic regeneration.
+- Health and boost restoration through eating food.
+- Collisions with snakes, bodies, tails, obstacles, and arena borders.
+- Mini-map.
+- Leaderboard.
+- Desktop and mobile controls.
+- Local storage for player name, record, and selected difficulty in single-player mode.
+- LAN multiplayer for two or more players in the same network.
 
-Сборка не нужна.
+## Project Structure
+
+```text
+snake_arena/
+├── index.html          # Standalone single-player version
+├── server.js           # LAN multiplayer server, no external dependencies
+├── public/
+│   └── index.html      # LAN multiplayer browser client
+├── README.md
+└── .gitignore
+```
+
+## Requirements
+
+Single-player mode only needs a browser.
+
+LAN multiplayer mode requires Node.js.
+
+No npm packages are required. The multiplayer server uses only built-in Node.js modules.
+
+## Run Single-Player Mode
+
+Open `index.html` directly in a browser.
+
+Optional local static server:
 
 ```bash
 python -m http.server 8000
 ```
 
-После запуска локального сервера открыть:
+Then open:
 
 ```text
 http://localhost:8000
 ```
 
-## Управление
+## Run LAN Multiplayer Mode
 
-### Компьютер
+Start the server on one computer in the local network:
 
-- мышь — направление движения;
-- `WASD` или стрелки — альтернативное управление;
-- клик мыши или `Space` — ускорение;
-- `P` или `Esc` — пауза;
-- `Enter` на экране поражения — начать заново.
-
-### Телефон
-
-- левый джойстик — направление движения;
-- правая кнопка `⚡` — ускорение.
-
-## Режимы сложности
-
-| Режим | Особенности |
-|---|---|
-| Лёгкий | меньше врагов и препятствий, ниже давление ресурсов |
-| Норма | базовый сбалансированный режим |
-| Сложный | больше врагов, выше агрессия, плотнее карта |
-| Эксперт | больше препятствий, быстрее реакция врагов, сильнее перехваты |
-
-## Игровые ресурсы
-
-### Здоровье
-
-Здоровье постоянно уменьшается. При ускорении здоровье тратится быстрее. Если здоровье дошло до нуля, игрок погибает.
-
-### Ускорение
-
-Ускорение не восстанавливается само. Если запас ускорения закончился, рывок отключается. Запас ускорения пополняется при поедании еды.
-
-## Поведение врагов
-
-Враги оценивают:
-
-- расстояние до еды;
-- угрозы от других змей;
-- собственное здоровье;
-- запас ускорения;
-- препятствия;
-- границы карты;
-- возможность преследования;
-- возможность перехвата;
-- риск столкновения с телами змей.
-
-Типы поведения врагов:
-
-- собиратель;
-- трус;
-- охотник;
-- дуэлянт;
-- ловец.
-
-## Структура проекта
-
-```text
-snake_arena/
-├── index.html   # вся игра: HTML, CSS, JavaScript
-└── README.md    # описание проекта
+```bash
+node server.js
 ```
 
-## Технические заметки
+The server prints addresses like:
 
-- Игра использует Canvas 2D.
-- Код работает без сторонних библиотек.
-- Вся логика находится в `index.html`.
-- Для хранения рекорда, имени и сложности используется `localStorage`.
-- Тело змеи строится по истории движения головы, поэтому хвост следует за реальным маршрутом.
+```text
+Snake Arena LAN server: http://localhost:3000
+LAN: http://192.168.1.25:3000
+```
 
-## Текущий статус
+The host can open:
 
-MVP+ версия готова для ручного тестирования на компьютере и телефоне.
+```text
+http://localhost:3000
+```
 
-Приоритет следующих улучшений:
+Other players on the same Wi-Fi or local network should open the LAN address, for example:
 
-1. разнести код по файлам `src/`, `styles/`, `assets/`;
-2. добавить автоматические проверки JavaScript;
-3. добавить GitHub Pages для публикации;
-4. расширить баланс сложности;
-5. добавить меню настроек графики и чувствительности управления.
+```text
+http://192.168.1.25:3000
+```
+
+Each player enters a name and joins the arena from their own device.
+
+## Multiplayer Architecture
+
+The LAN mode uses an authoritative Node.js server:
+
+- the server owns the world state;
+- players send input to the server;
+- the server updates snakes, food, obstacles, AI bots, resources, and collisions;
+- clients poll the current arena snapshot and render it locally;
+- no external backend or internet connection is required after the local server is running.
+
+This design is intentionally simple and robust for local network play.
+
+## Controls
+
+### Desktop
+
+- Mouse — movement direction.
+- `WASD` or arrow keys — alternative movement direction.
+- Mouse click or `Space` — boost.
+- `P` or `Esc` — pause in single-player mode.
+- `Enter` on defeat screen — restart in single-player mode.
+
+### Mobile
+
+- Left joystick — movement direction.
+- Right `⚡` button — boost.
+
+## Resources
+
+### Health
+
+Health constantly drains over time. Boosting burns health faster. If health reaches zero, the snake dies.
+
+### Boost
+
+Boost does not regenerate automatically. When boost reaches zero, acceleration stops. Boost is restored by eating food.
+
+## Single-Player Difficulty Levels
+
+| Difficulty | Description |
+|---|---|
+| Easy | Fewer enemies and obstacles, lower resource pressure |
+| Normal | Balanced baseline mode |
+| Hard | More enemies, higher aggression, denser arena |
+| Expert | More obstacles, faster enemy reaction, stronger interception behavior |
+
+## Enemy Behavior
+
+AI enemies evaluate:
+
+- distance to food;
+- threats from other snakes;
+- own health;
+- boost reserve;
+- obstacles;
+- arena borders;
+- chase opportunities;
+- interception opportunities;
+- collision risk with snake bodies.
+
+Enemy behavior profiles include:
+
+- forager;
+- coward;
+- hunter;
+- duelist;
+- trapper.
+
+## Current Status
+
+The project is ready for manual testing in both modes:
+
+- single-player directly from `index.html`;
+- LAN multiplayer through `node server.js`.
+
+## Recommended Next Steps
+
+1. Split the single-player code into `src/`, `styles/`, and `assets/`.
+2. Add automated JavaScript validation.
+3. Add a proper WebSocket transport for lower-latency multiplayer.
+4. Add server-side rooms and match settings.
+5. Add GitHub Pages for the single-player build.
+6. Add a settings menu for graphics and control sensitivity.
