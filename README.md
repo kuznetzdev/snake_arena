@@ -7,6 +7,20 @@
 
 The LAN mode is designed for two or more players in the same Wi‑Fi/local network, with AI bots always present in the arena.
 
+## Important: Which File to Open
+
+For **local network multiplayer**, do not open the root `index.html` directly.
+
+Use the LAN launcher:
+
+```bash
+npm start
+```
+
+or double-click the platform launcher file. The launcher starts the local server and opens the host dashboard.
+
+Players should open the LAN link shown on the host dashboard. That link serves `public/index.html`, which is the multiplayer client.
+
 ## Fastest LAN Start
 
 ### Windows
@@ -88,6 +102,16 @@ It allows the host to:
   - obstacle count.
 
 Changing match settings restarts the arena while keeping connected player slots.
+
+## LAN Client UX
+
+The multiplayer client now includes:
+
+- a clear `Join Arena` button;
+- a `Host Dashboard` button;
+- a `Check Server` button;
+- a clear hint that the server must be started through the launcher;
+- stabilized grid rendering to avoid inconsistent thick/thin grid lines.
 
 ## Important Browser Limitation
 
