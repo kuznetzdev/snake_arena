@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Snake Arena LAN Host</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;background:#050615;color:#fff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 25%,rgba(35,41,105,.95),#050615 62%,#02030c)}.card{width:min(820px,100%);background:rgba(8,10,30,.84);border:1px solid rgba(150,175,255,.24);border-radius:30px;padding:30px;box-shadow:0 30px 110px rgba(0,0,0,.55);backdrop-filter:blur(18px)}h1{font:1000 clamp(36px,8vw,70px) ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:.92;letter-spacing:-.06em;background:linear-gradient(135deg,#fff,#68b8ff,#a855f7,#f472b6);color:transparent;-webkit-background-clip:text;background-clip:text}.sub{margin-top:12px;color:rgba(215,225,255,.62);font-size:13px;text-transform:uppercase;letter-spacing:.16em;font-weight:1000}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:26px}.box{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:18px}.box h2{font-size:14px;text-transform:uppercase;letter-spacing:.12em;color:rgba(215,225,255,.56);margin-bottom:12px}.url{display:flex;gap:10px;align-items:center;margin:8px 0;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;word-break:break-all}.url span{flex:1}.btn{height:44px;border:0;border-radius:13px;padding:0 16px;background:linear-gradient(135deg,#56a8ff,#7c3aed);color:#fff;font-weight:1000;cursor:pointer;white-space:nowrap}.btn.secondary{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}.status{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{padding:14px;border-radius:16px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);text-align:center}.stat b{display:block;font:1000 28px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.stat span{display:block;margin-top:4px;color:rgba(215,225,255,.46);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900}.help{margin-top:18px;color:rgba(215,225,255,.52);font-size:14px;line-height:1.7}.warn{margin-top:14px;padding:12px 14px;border-radius:16px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.22);color:rgba(255,238,190,.86);font-size:13px;line-height:1.55}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}@media(max-width:760px){.card{padding:22px}.grid{grid-template-columns:1fr}.status{grid-template-columns:1fr 1fr 1fr}.url{align-items:flex-start;flex-direction:column}.btn{width:100%}}
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>Snake Arena<br>LAN Host</h1>
+  <div class="sub">Local network game dashboard</div>
+  <div class="grid">
+    <section class="box">
+      <h2>Share this address</h2>
+      <div id="urls">Loading LAN addresses...</div>
+      <div class="actions">
+        <button class="btn" id="openGame">Open Game on Host</button>
+        <button class="btn secondary" id="refresh">Refresh</button>
+      </div>
+      <div class="warn">Players must be connected to the same Wi‑Fi or local network. Keep the launcher/server window open while playing.</div>
+    </section>
+    <section class="box">
+      <h2>Server status</h2>
+      <div class="status">
+        <div class="stat"><b id="players">0</b><span>Players</span></div>
+        <div class="stat"><b id="bots">0</b><span>Bots</span></div>
+        <div class="stat"><b id="alive">0</b><span>Alive</span></div>
+      </div>
+      <p class="help">This dashboard does not start the server from the browser. The launcher starts it, opens this page, and shows all LAN links for players.</p>
+    </section>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
+async function getJson(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function loadInfo(){
+  const box=$('urls');
+  try{
+    const info=await getJson('/lan-info.json');
+    const urls=(info.lanUrls&&info.lanUrls.length?info.lanUrls:[location.origin]);
+    box.innerHTML=urls.map(u=>`<div class="url"><span>${esc(u)}</span><button class="btn" data-copy="${esc(u)}">Copy</button></div>`).join('');
+    box.querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=async()=>{await navigator.clipboard.writeText(btn.dataset.copy);btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',900);});
+  }catch(e){
+    box.innerHTML=`<div class="url"><span>${esc(location.origin)}</span><button class="btn" data-copy="${esc(location.origin)}">Copy</button></div>`;
+  }
+}
+async function loadStatus(){
+  try{
+    const state=await getJson('/api/state');
+    const snakes=state.snakes||[];
+    $('players').textContent=snakes.filter(s=>!s.bot).length;
+    $('bots').textContent=snakes.filter(s=>s.bot).length;
+    $('alive').textContent=snakes.filter(s=>s.alive).length;
+  }catch(e){}
+}
+$('openGame').onclick=()=>{location.href='/';};
+$('refresh').onclick=()=>{loadInfo();loadStatus();};
+loadInfo();loadStatus();setInterval(loadStatus,1500);
+</script>
+</body>
+</html>
