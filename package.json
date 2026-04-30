@@ -1,0 +1,23 @@
+{
+  "name": "snake-arena",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Browser-based Snake Arena with single-player and LAN multiplayer modes.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "lan": "node server.js"
+  },
+  "keywords": [
+    "snake",
+    "arena",
+    "canvas",
+    "multiplayer",
+    "lan",
+    "game"
+  ],
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  }
+}
