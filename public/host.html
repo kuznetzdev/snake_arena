@@ -5,61 +5,103 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <title>Snake Arena LAN Host</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;background:#050615;color:#fff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 25%,rgba(35,41,105,.95),#050615 62%,#02030c)}.card{width:min(820px,100%);background:rgba(8,10,30,.84);border:1px solid rgba(150,175,255,.24);border-radius:30px;padding:30px;box-shadow:0 30px 110px rgba(0,0,0,.55);backdrop-filter:blur(18px)}h1{font:1000 clamp(36px,8vw,70px) ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:.92;letter-spacing:-.06em;background:linear-gradient(135deg,#fff,#68b8ff,#a855f7,#f472b6);color:transparent;-webkit-background-clip:text;background-clip:text}.sub{margin-top:12px;color:rgba(215,225,255,.62);font-size:13px;text-transform:uppercase;letter-spacing:.16em;font-weight:1000}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:26px}.box{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:18px}.box h2{font-size:14px;text-transform:uppercase;letter-spacing:.12em;color:rgba(215,225,255,.56);margin-bottom:12px}.url{display:flex;gap:10px;align-items:center;margin:8px 0;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;word-break:break-all}.url span{flex:1}.btn{height:44px;border:0;border-radius:13px;padding:0 16px;background:linear-gradient(135deg,#56a8ff,#7c3aed);color:#fff;font-weight:1000;cursor:pointer;white-space:nowrap}.btn.secondary{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}.status{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{padding:14px;border-radius:16px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);text-align:center}.stat b{display:block;font:1000 28px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.stat span{display:block;margin-top:4px;color:rgba(215,225,255,.46);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900}.help{margin-top:18px;color:rgba(215,225,255,.52);font-size:14px;line-height:1.7}.warn{margin-top:14px;padding:12px 14px;border-radius:16px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.22);color:rgba(255,238,190,.86);font-size:13px;line-height:1.55}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}@media(max-width:760px){.card{padding:22px}.grid{grid-template-columns:1fr}.status{grid-template-columns:1fr 1fr 1fr}.url{align-items:flex-start;flex-direction:column}.btn{width:100%}}
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;background:#050615;color:#fff;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 25%,rgba(35,41,105,.95),#050615 62%,#02030c)}.card{width:min(980px,100%);background:rgba(8,10,30,.84);border:1px solid rgba(150,175,255,.24);border-radius:30px;padding:30px;box-shadow:0 30px 110px rgba(0,0,0,.55);backdrop-filter:blur(18px)}h1{font:1000 clamp(36px,8vw,70px) ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:.92;letter-spacing:-.06em;background:linear-gradient(135deg,#fff,#68b8ff,#a855f7,#f472b6);color:transparent;-webkit-background-clip:text;background-clip:text}.sub{margin-top:12px;color:rgba(215,225,255,.62);font-size:13px;text-transform:uppercase;letter-spacing:.16em;font-weight:1000}.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:26px}.box{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:18px}.box h2{font-size:14px;text-transform:uppercase;letter-spacing:.12em;color:rgba(215,225,255,.56);margin-bottom:12px}.url{display:flex;gap:10px;align-items:center;margin:8px 0;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;word-break:break-all}.url span{flex:1}.btn{height:44px;border:0;border-radius:13px;padding:0 16px;background:linear-gradient(135deg,#56a8ff,#7c3aed);color:#fff;font-weight:1000;cursor:pointer;white-space:nowrap}.btn.secondary{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}.btn.danger{background:linear-gradient(135deg,#ff4d6d,#f472b6)}.status{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{padding:14px;border-radius:16px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);text-align:center}.stat b{display:block;font:1000 26px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.stat span{display:block;margin-top:4px;color:rgba(215,225,255,.46);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900}.help{margin-top:18px;color:rgba(215,225,255,.52);font-size:14px;line-height:1.7}.warn{margin-top:14px;padding:12px 14px;border-radius:16px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.22);color:rgba(255,238,190,.86);font-size:13px;line-height:1.55}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.settings{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}.field{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px}.field label{display:block;color:rgba(215,225,255,.48);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;margin-bottom:8px}.field input{width:100%;height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;text-align:center;font-weight:1000}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(8,10,30,.92);border:1px solid rgba(150,175,255,.25);border-radius:999px;padding:10px 16px;font-weight:1000;opacity:0;transition:.2s}.toast.on{opacity:1}@media(max-width:860px){.card{padding:22px}.grid{grid-template-columns:1fr}.status{grid-template-columns:repeat(3,1fr)}.settings{grid-template-columns:1fr}.url{align-items:flex-start;flex-direction:column}.btn{width:100%}}
 </style>
 </head>
 <body>
 <main class="card">
   <h1>Snake Arena<br>LAN Host</h1>
-  <div class="sub">Local network game dashboard</div>
+  <div class="sub">One-click local network room dashboard</div>
   <div class="grid">
     <section class="box">
-      <h2>Share this address</h2>
+      <h2>1. Share this address</h2>
       <div id="urls">Loading LAN addresses...</div>
       <div class="actions">
         <button class="btn" id="openGame">Open Game on Host</button>
-        <button class="btn secondary" id="refresh">Refresh</button>
+        <button class="btn secondary" id="refresh">Refresh Links</button>
       </div>
       <div class="warn">Players must be connected to the same Wi‑Fi or local network. Keep the launcher/server window open while playing.</div>
     </section>
     <section class="box">
-      <h2>Server status</h2>
+      <h2>2. Room status</h2>
       <div class="status">
         <div class="stat"><b id="players">0</b><span>Players</span></div>
         <div class="stat"><b id="bots">0</b><span>Bots</span></div>
         <div class="stat"><b id="alive">0</b><span>Alive</span></div>
+        <div class="stat"><b id="food">0</b><span>Food</span></div>
+        <div class="stat"><b id="obstacles">0</b><span>Rocks</span></div>
       </div>
-      <p class="help">This dashboard does not start the server from the browser. The launcher starts it, opens this page, and shows all LAN links for players.</p>
+      <p class="help">Use this page as the host control panel. Players only need the LAN link.</p>
+    </section>
+    <section class="box">
+      <h2>3. Match settings</h2>
+      <div class="settings">
+        <div class="field"><label for="botsInput">Bots</label><input id="botsInput" type="number" min="0" max="40" step="1"></div>
+        <div class="field"><label for="foodInput">Food</label><input id="foodInput" type="number" min="150" max="1800" step="10"></div>
+        <div class="field"><label for="obstaclesInput">Obstacles</label><input id="obstaclesInput" type="number" min="0" max="90" step="1"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="applySettings">Apply & Restart Match</button>
+        <button class="btn danger" id="resetMatch">Restart Current Match</button>
+      </div>
+      <p class="help">Changing settings keeps connected player slots but respawns the arena. This is useful for quick balancing during local playtests.</p>
+    </section>
+    <section class="box">
+      <h2>Simple host flow</h2>
+      <p class="help">1) Start the launcher. 2) This page opens automatically. 3) Copy a LAN link. 4) Send it to players. 5) Press Open Game on Host if the host also wants to play.</p>
+      <div class="actions"><button class="btn secondary" id="copyAll">Copy All Links</button></div>
     </section>
   </div>
 </main>
+<div class="toast" id="toast"></div>
 <script>
 const $=id=>document.getElementById(id);
+let lastInfo=null;
 function esc(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(t){$('toast').textContent=t;$('toast').classList.add('on');setTimeout(()=>$('toast').classList.remove('on'),1200);}
 async function getJson(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function postJson(url,data={}){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'});if(!r.ok)throw new Error(await r.text());return r.json();}
+function renderUrls(info){
+  const urls=(info.lanUrls&&info.lanUrls.length?info.lanUrls:[location.origin]);
+  $('urls').innerHTML=urls.map(u=>`<div class="url"><span>${esc(u)}</span><button class="btn" data-copy="${esc(u)}">Copy</button></div>`).join('');
+  $('urls').querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=async()=>{await navigator.clipboard.writeText(btn.dataset.copy);toast('Copied');});
+}
+function renderInfo(info){
+  lastInfo=info;
+  const stats=info.stats||{};
+  const cfg=info.config||{};
+  $('players').textContent=stats.players??0;
+  $('bots').textContent=stats.bots??0;
+  $('alive').textContent=stats.alive??0;
+  $('food').textContent=stats.food??0;
+  $('obstacles').textContent=stats.obstacles??0;
+  $('botsInput').value=cfg.bots??14;
+  $('foodInput').value=cfg.food??900;
+  $('obstaclesInput').value=cfg.obstacles??34;
+  renderUrls(info);
+}
 async function loadInfo(){
-  const box=$('urls');
-  try{
-    const info=await getJson('/lan-info.json');
-    const urls=(info.lanUrls&&info.lanUrls.length?info.lanUrls:[location.origin]);
-    box.innerHTML=urls.map(u=>`<div class="url"><span>${esc(u)}</span><button class="btn" data-copy="${esc(u)}">Copy</button></div>`).join('');
-    box.querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=async()=>{await navigator.clipboard.writeText(btn.dataset.copy);btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',900);});
-  }catch(e){
-    box.innerHTML=`<div class="url"><span>${esc(location.origin)}</span><button class="btn" data-copy="${esc(location.origin)}">Copy</button></div>`;
+  try{ renderInfo(await getJson('/api/info')); }
+  catch(e){
+    $('urls').innerHTML=`<div class="url"><span>${esc(location.origin)}</span><button class="btn" data-copy="${esc(location.origin)}">Copy</button></div>`;
   }
 }
-async function loadStatus(){
-  try{
-    const state=await getJson('/api/state');
-    const snakes=state.snakes||[];
-    $('players').textContent=snakes.filter(s=>!s.bot).length;
-    $('bots').textContent=snakes.filter(s=>s.bot).length;
-    $('alive').textContent=snakes.filter(s=>s.alive).length;
-  }catch(e){}
+async function applySettings(){
+  await postJson('/api/settings',{bots:+$('botsInput').value,food:+$('foodInput').value,obstacles:+$('obstaclesInput').value});
+  toast('Settings applied');
+  await loadInfo();
+}
+async function resetMatch(){
+  await postJson('/api/reset',{});
+  toast('Match restarted');
+  await loadInfo();
 }
 $('openGame').onclick=()=>{location.href='/';};
-$('refresh').onclick=()=>{loadInfo();loadStatus();};
-loadInfo();loadStatus();setInterval(loadStatus,1500);
+$('refresh').onclick=()=>loadInfo();
+$('applySettings').onclick=()=>applySettings().catch(()=>toast('Failed'));
+$('resetMatch').onclick=()=>resetMatch().catch(()=>toast('Failed'));
+$('copyAll').onclick=async()=>{const urls=(lastInfo?.lanUrls&&lastInfo.lanUrls.length?lastInfo.lanUrls:[location.origin]);await navigator.clipboard.writeText(urls.join('\n'));toast('Links copied');};
+loadInfo();setInterval(loadInfo,1500);
 </script>
 </body>
 </html>
