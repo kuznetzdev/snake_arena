@@ -47,7 +47,7 @@ chmod +x start-lan.sh
 npm start
 ```
 
-`npm start` now launches the friendly LAN launcher, not just the raw server.
+`npm start` launches the friendly LAN launcher, not just the raw server.
 
 ## What the Launcher Does
 
@@ -71,6 +71,23 @@ http://192.168.1.25:3000
 ```
 
 Each player opens the link on their own phone/computer, enters a name, and joins the arena.
+
+## Host Dashboard
+
+The host dashboard is the control panel for the local network room.
+
+It allows the host to:
+
+- copy LAN join links;
+- open the game on the host device;
+- monitor players, bots, alive snakes, food, and obstacles;
+- restart the current match without manually restarting the server;
+- change match settings:
+  - bot count;
+  - food amount;
+  - obstacle count.
+
+Changing match settings restarts the arena while keeping connected player slots.
 
 ## Important Browser Limitation
 
@@ -98,14 +115,14 @@ This is the closest safe flow to “Start network game from UI” without packag
 - Mini-map.
 - Leaderboard.
 - Desktop and mobile controls.
-- Host dashboard with shareable LAN links.
+- Host dashboard with shareable LAN links and match controls.
 
 ## Project Structure
 
 ```text
 snake_arena/
 ├── index.html                 # Standalone single-player version
-├── server.js                  # LAN multiplayer server
+├── server.js                  # LAN multiplayer server and host API
 ├── start-lan.js               # Cross-platform LAN launcher
 ├── start-lan-windows.bat      # Windows double-click launcher
 ├── start-lan-macos.command    # macOS double-click launcher
@@ -113,7 +130,7 @@ snake_arena/
 ├── package.json
 ├── public/
 │   ├── index.html             # LAN multiplayer client
-│   └── host.html              # Host dashboard with LAN links
+│   └── host.html              # Host dashboard with LAN links and match controls
 ├── README.md
 └── .gitignore
 ```
@@ -166,6 +183,18 @@ The LAN mode uses an authoritative Node.js server:
 - clients poll the current arena snapshot and render it locally;
 - no external backend or internet connection is required after the local server is running.
 
+The host API includes:
+
+```text
+GET  /api/info
+GET  /api/state
+POST /api/reset
+GET  /api/settings
+POST /api/settings
+POST /api/join
+POST /api/input
+```
+
 This is intentionally simple and robust for local network play.
 
 ## Controls
@@ -198,12 +227,13 @@ Boost does not regenerate automatically. When boost reaches zero, acceleration s
 The project is ready for manual testing in both modes:
 
 - single-player directly from `index.html`;
-- LAN multiplayer through the launcher or `npm start`.
+- LAN multiplayer through the launcher or `npm start`;
+- host-managed LAN matches through `public/host.html`.
 
 ## Recommended Next Steps
 
 1. Package the launcher as a desktop app with Electron or Tauri for a true one-button native experience.
 2. Add WebSocket transport for lower-latency multiplayer.
-3. Add rooms and match settings.
+3. Add room presets and named match modes.
 4. Add automatic JavaScript validation.
 5. Add graphics/control settings.
