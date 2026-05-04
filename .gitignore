@@ -18,6 +18,7 @@ yarn-error.log*
 /dist/
 /build/
 /.cache/
+lan-info.json
 
 # Environment
 .env
